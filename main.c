@@ -2,11 +2,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include "game.h"
+#include "neural_net.h"
 #include "terminal.h"
 
-void draw(GameState *state) {
+void draw(GameState *state, int generation, int score) {
     clear_screen();
-    
+
     printf("+");
     for (int j = 0; j < GRID_WIDTH; j++) printf("-");
     printf("+\n");
@@ -25,36 +26,42 @@ void draw(GameState *state) {
     for (int j = 0; j < GRID_WIDTH; j++) printf("-");
     printf("+\n");
 
-    printf("Score: %d\n", state->score);
+    printf("Generation: %d | Score: %d\n", generation, score);
 }
 
 int main() {
     srand(42);
-    GameState state;
-    init_game(&state);
 
-    enable_raw_mode();
-    hide_cursor();
+    NeuralNet net;
+    init_network(&net);
 
-    while (state.alive) {
-        int key = get_key();
+    int generation = 1;
 
-        if (key == 'w' && state.snake.direction != DOWN)  state.snake.direction = UP;
-        if (key == 's' && state.snake.direction != UP)    state.snake.direction = DOWN;
-        if (key == 'a' && state.snake.direction != RIGHT) state.snake.direction = LEFT;
-        if (key == 'd' && state.snake.direction != LEFT)  state.snake.direction = RIGHT;
-        if (key == 'q') break;
+    while (1) {
+        GameState state;
+        init_game(&state);
 
-        update_game(&state);
-        draw(&state);
+        int steps = 0;
 
-        usleep(150000);
+        while (state.alive && steps < 200) {
+            float inputs[INPUT_SIZE];
+            get_inputs(&state, inputs);
+            forward(&net, inputs);
+            int action = get_action(&net);
+
+            if (action == 0) state.snake.direction = UP;
+            if (action == 1) state.snake.direction = DOWN;
+            if (action == 2) state.snake.direction = LEFT;
+            if (action == 3) state.snake.direction = RIGHT;
+
+            update_game(&state);
+            draw(&state, generation, state.score);
+            usleep(100000);
+            steps++;
+        }
+
+        generation++;
     }
-
-    show_cursor();
-    disable_raw_mode();
-    clear_screen();
-    printf("Game Over! Score: %d\n", state.score);
 
     return 0;
 }

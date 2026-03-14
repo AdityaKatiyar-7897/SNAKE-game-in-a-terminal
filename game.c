@@ -86,3 +86,19 @@ void update_game(GameState *state) {
     state->snake.body[state->snake.tail_idx] = next;
     state->grid[next.y][next.x] = SNAKE;
 }
+
+void get_inputs(GameState *state, float inputs[INPUT_SIZE]) {
+    Point head = state->snake.body[state->snake.tail_idx];
+
+    // Danger in each direction
+    inputs[0] = (head.y - 1 < 0 || state->grid[head.y-1][head.x] == SNAKE) ? 1.0f : 0.0f;
+    inputs[1] = (head.y + 1 >= GRID_HEIGHT || state->grid[head.y+1][head.x] == SNAKE) ? 1.0f : 0.0f;
+    inputs[2] = (head.x - 1 < 0 || state->grid[head.y][head.x-1] == SNAKE) ? 1.0f : 0.0f;
+    inputs[3] = (head.x + 1 >= GRID_WIDTH || state->grid[head.y][head.x+1] == SNAKE) ? 1.0f : 0.0f;
+
+    // Food direction
+    inputs[4] = (state->food.y < head.y) ? 1.0f : 0.0f;
+    inputs[5] = (state->food.y > head.y) ? 1.0f : 0.0f;
+    inputs[6] = (state->food.x < head.x) ? 1.0f : 0.0f;
+    inputs[7] = (state->food.x > head.x) ? 1.0f : 0.0f;
+}

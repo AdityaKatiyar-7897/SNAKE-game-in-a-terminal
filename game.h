@@ -1,6 +1,8 @@
+
 #ifndef GAME_H
 #define GAME_H
 
+#include "neural_net.h"
 #include <stdlib.h>
 
 #define GRID_WIDTH 20
@@ -45,4 +47,5 @@ void init_game(GameState *state);
 void spawn_food(GameState *state);
 void update_game(GameState *state);
 
+void get_inputs(GameState *state, float inputs[INPUT_SIZE]);
 #endif
